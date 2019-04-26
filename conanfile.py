@@ -13,7 +13,7 @@ class LibpngConan(ConanFile):
     url = "http://github.com/bincrafters/conan-libpng"
     author = "Bincrafters <bincrafters@gmail.com>"
     homepage = "http://www.libpng.org"
-    license = "http://www.libpng.org/pub/png/src/libpng-LICENSE.txt"
+    license = "libpng-2.0"
     exports = ["LICENSE.md"]
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
