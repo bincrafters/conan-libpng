@@ -46,25 +46,20 @@ class LibpngConan(ConanFile):
                     os.path.join(self._source_subfolder, "CMakeLists.txt"))
 
     def build(self):
-        if self.settings.os == "Windows" and self.settings.compiler == "gcc":
-            tools.replace_in_file("%s/CMakeListsOriginal.txt" % self._source_subfolder,
-                                  'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}',
-                                  'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/$<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}')
-        # do not use _static suffix on VS
-        if self.settings.os == "Windows" and self.settings.compiler == "Visual Studio":
-            tools.replace_in_file("%s/CMakeListsOriginal.txt" % self._source_subfolder,
-                                  'OUTPUT_NAME "${PNG_LIB_NAME}_static',
-                                  'OUTPUT_NAME "${PNG_LIB_NAME}')
+        if self.settings.os == "Windows":
+            if self.settings.compiler == "Visual Studio":
+                tools.replace_in_file("%s/CMakeListsOriginal.txt" % self._source_subfolder,
+                                     'OUTPUT_NAME "${PNG_LIB_NAME}_static',
+                                     'OUTPUT_NAME "${PNG_LIB_NAME}')
+            else:
+                tools.replace_in_file("%s/CMakeListsOriginal.txt" % self._source_subfolder,
+                                      'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}',
+                                      'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/$<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}')
 
         if self.settings.build_type == 'Debug':
             tools.replace_in_file(os.path.join(self._source_subfolder, 'libpng.pc.in'),
                                   '-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@',
                                   '-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@d')
-
-        if 'arm' in self.settings.arch and self.settings.os == "Linux":
-            tools.replace_in_file(os.path.join(self._source_subfolder, 'CMakeListsOriginal.txt'),
-                                  'PATHS /usr/lib /usr/local/lib',
-                                  'PATHS /usr/lib /usr/local/lib /usr/arm-linux-gnueabihf/lib /usr/arm-linux-gnueabi/lib ')
 
         cmake = CMake(self)
 
