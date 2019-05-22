@@ -71,6 +71,11 @@ class LibpngConan(ConanFile):
         cmake.definitions["PNG_SHARED"] = self.options.shared
         cmake.definitions["PNG_STATIC"] = not self.options.shared
         cmake.definitions["PNG_DEBUG"] = "OFF" if self.settings.build_type == "Release" else "ON"
+        if self.settings.os == "Emscripten":
+            cmake.definitions["PNG_BUILD_ZLIB"] = "ON"
+            cmake.definitions["M_LIBRARY"] = ""
+            cmake.definitions["ZLIB_LIBRARY"] = self.deps_cpp_info["zlib"].libs[0]
+            cmake.definitions["ZLIB_INCLUDE_DIR"] = self.deps_cpp_info["zlib"].include_paths[0]
         cmake.configure(source_folder=self._source_subfolder)
         cmake.build()
         cmake.install()
