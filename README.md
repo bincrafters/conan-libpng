@@ -1,6 +1,5 @@
 [![Download](https://api.bintray.com/packages/bincrafters/public-conan/libpng%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/libpng%3Abincrafters/_latestVersion)
 [![Build Status Travis](https://travis-ci.com/bincrafters/conan-libpng.svg?branch=stable%2F1.6.37)](https://travis-ci.com/bincrafters/conan-libpng)
-[![Build Status Azure](https://dev.azure.com/bincrafters/packages/_apis/build/status/bincrafters.conan-libpng?branchName=stable%2F1.6.37)](https://dev.azure.com/bincrafters/packages/_build)
 [![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-libpng?branch=stable%2F1.6.37&svg=true)](https://ci.appveyor.com/project/bincrafters/conan-libpng)
 
 ## Conan package recipe for [*libpng*](http://www.libpng.org)
