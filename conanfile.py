@@ -15,7 +15,7 @@ class LibpngConan(ConanFile):
     homepage = "http://www.libpng.org"
     license = "libpng-2.0"
     exports = ["LICENSE.md"]
-    exports_sources = ["CMakeLists.txt"]
+    exports_sources = ["CMakeLists.txt", "patches/*"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -40,6 +40,10 @@ class LibpngConan(ConanFile):
             "%s/%s/libpng-%s.tar.gz" % (base_url, self.version, self.version),
             sha256="daeb2620d829575513e35fecc83f0d3791a620b9b93d800b763542ece9390fb4")
         os.rename("libpng-" + self.version, self._source_subfolder)
+
+        tools.patch(patch_file=os.path.join("patches", "CMakeLists-zlib.patch"),
+                    base_path=os.path.join(self.source_folder, self._source_subfolder))
+
         os.rename(os.path.join(self._source_subfolder, "CMakeLists.txt"),
                   os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"))
         shutil.copy("CMakeLists.txt",
