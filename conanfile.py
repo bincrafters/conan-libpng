@@ -18,8 +18,8 @@ class LibpngConan(ConanFile):
     exports_sources = ["CMakeLists.txt", "patches/*"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = {'shared': False, 'fPIC': True}
+    options = {"shared": [True, False], "fPIC": [True, False], "api_prefix": "ANY"}
+    default_options = {'shared': False, 'fPIC': True, "api_prefix": None}
 
     _source_subfolder = "source_subfolder"
 
@@ -80,6 +80,8 @@ class LibpngConan(ConanFile):
             cmake.definitions["M_LIBRARY"] = ""
             cmake.definitions["ZLIB_LIBRARY"] = self.deps_cpp_info["zlib"].libs[0]
             cmake.definitions["ZLIB_INCLUDE_DIR"] = self.deps_cpp_info["zlib"].include_paths[0]
+        if self.options.api_prefix:
+            cmake.definitions["PNG_PREFIX"] = self.options.api_prefix
         cmake.configure(source_folder=self._source_subfolder)
         cmake.build()
         cmake.install()
