@@ -41,22 +41,17 @@ class LibpngConan(ConanFile):
             sha256="daeb2620d829575513e35fecc83f0d3791a620b9b93d800b763542ece9390fb4")
         os.rename("libpng-" + self.version, self._source_subfolder)
 
-        tools.patch(patch_file=os.path.join("patches", "CMakeLists-zlib.patch"),
-                    base_path=os.path.join(self.source_folder, self._source_subfolder))
 
-        os.rename(os.path.join(self._source_subfolder, "CMakeLists.txt"),
-                  os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"))
-        shutil.copy("CMakeLists.txt",
-                    os.path.join(self._source_subfolder, "CMakeLists.txt"))
 
-    def build(self):
+    def _patch(self):
+        tools.patch(base_path=self._source_subfolder, patch_file=os.path.join("patches", "0001-find-zlib.patch"))
         if self.settings.os == "Windows":
             if self.settings.compiler == "Visual Studio":
-                tools.replace_in_file("%s/CMakeListsOriginal.txt" % self._source_subfolder,
+                tools.replace_in_file("%s/CMakeLists.txt" % self._source_subfolder,
                                      'OUTPUT_NAME "${PNG_LIB_NAME}_static',
                                      'OUTPUT_NAME "${PNG_LIB_NAME}')
             else:
-                tools.replace_in_file("%s/CMakeListsOriginal.txt" % self._source_subfolder,
+                tools.replace_in_file("%s/CMakeLists.txt" % self._source_subfolder,
                                       'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}',
                                       'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/$<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}')
 
@@ -65,11 +60,9 @@ class LibpngConan(ConanFile):
                                   '-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@',
                                   '-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@d')
 
+    def build(self):
+        self._patch()
         cmake = CMake(self)
-
-        cmake.definitions['CMAKE_INSTALL_LIBDIR'] = 'lib'
-        cmake.definitions['CMAKE_INSTALL_BINDIR'] = 'bin'
-        cmake.definitions['CMAKE_INSTALL_INCLUDEDIR'] = 'include'
 
         cmake.definitions["PNG_TESTS"] = "OFF"
         cmake.definitions["PNG_SHARED"] = self.options.shared
