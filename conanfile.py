@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import shutil
 from conans import ConanFile, tools, CMake
 
 
@@ -44,14 +43,18 @@ class LibpngConan(ConanFile):
 
 
     def _patch(self):
-        tools.patch(base_path=self._source_subfolder, patch_file=os.path.join("patches", "0001-find-zlib.patch"))
+        tools.patch(base_path=self._source_subfolder, patch_file=os.path.join("patches", "CMakeLists-zlib.patch"))
+        tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
+                              "find_library(M_LIBRARY m)",
+                              "set(M_LIBRARY m)")
+
         if self.settings.os == "Windows":
             if self.settings.compiler == "Visual Studio":
-                tools.replace_in_file("%s/CMakeLists.txt" % self._source_subfolder,
+                tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
                                      'OUTPUT_NAME "${PNG_LIB_NAME}_static',
                                      'OUTPUT_NAME "${PNG_LIB_NAME}')
             else:
-                tools.replace_in_file("%s/CMakeLists.txt" % self._source_subfolder,
+                tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeLists.txt"),
                                       'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}',
                                       'COMMAND "${CMAKE_COMMAND}" -E copy_if_different $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/$<TARGET_LINKER_FILE_NAME:${S_TARGET}> $<TARGET_LINKER_FILE_DIR:${S_TARGET}>/${DEST_FILE}')
 
@@ -60,10 +63,8 @@ class LibpngConan(ConanFile):
                                   '-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@',
                                   '-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@d')
 
-    def build(self):
-        self._patch()
+    def _configure_cmake(self):
         cmake = CMake(self)
-
         cmake.definitions["PNG_TESTS"] = "OFF"
         cmake.definitions["PNG_SHARED"] = self.options.shared
         cmake.definitions["PNG_STATIC"] = not self.options.shared
@@ -75,13 +76,19 @@ class LibpngConan(ConanFile):
             cmake.definitions["ZLIB_INCLUDE_DIR"] = self.deps_cpp_info["zlib"].include_paths[0]
         if self.options.api_prefix:
             cmake.definitions["PNG_PREFIX"] = self.options.api_prefix
-        cmake.configure(source_folder=self._source_subfolder)
+        cmake.configure()
+        return cmake
+
+    def build(self):
+        self._patch()
+        cmake = self._configure_cmake()
         cmake.build()
-        cmake.install()
 
     def package(self):
         self.copy("LICENSE", src=self._source_subfolder, dst="licenses", ignore_case=True, keep_path=False)
-        shutil.rmtree(os.path.join(self.package_folder, 'share', 'man'), ignore_errors=True)
+        cmake = self._configure_cmake()
+        cmake.install()
+        tools.rmdir(os.path.join(self.package_folder, 'share', 'man'))
 
     def package_info(self):
         if self.settings.os == "Windows":
