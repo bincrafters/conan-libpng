@@ -31,6 +31,7 @@ class LibpngConan(ConanFile):
 
     def configure(self):
         del self.settings.compiler.libcxx
+        del self.settings.compiler.cppstd
 
     def source(self):
         base_url = "https://sourceforge.net/projects/libpng/files/libpng16/"
