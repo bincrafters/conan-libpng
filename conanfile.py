@@ -3,6 +3,7 @@
 
 import os
 from conans import ConanFile, tools, CMake
+from conans.errors import ConanException
 
 
 class LibpngConan(ConanFile):
@@ -31,16 +32,19 @@ class LibpngConan(ConanFile):
 
     def configure(self):
         del self.settings.compiler.libcxx
+        del self.settings.compiler.cppstd
 
     def source(self):
-        base_url = "https://sourceforge.net/projects/libpng/files/libpng16/"
-        # Don't use .xz, CIs uses conan/python2, which does not support xz
-        tools.get(
-            "%s/%s/libpng-%s.tar.gz" % (base_url, self.version, self.version),
-            sha256="daeb2620d829575513e35fecc83f0d3791a620b9b93d800b763542ece9390fb4")
+        try:
+            sha256 = "daeb2620d829575513e35fecc83f0d3791a620b9b93d800b763542ece9390fb4"
+            base_url = "https://sourceforge.net/projects/libpng/files/libpng16/"
+            # Don't use .xz, CIs uses conan/python2, which does not support xz
+            tools.get("%s/%s/libpng-%s.tar.gz" % (base_url, self.version, self.version), sha256=sha256)
+        except ConanException:
+            sha256 = "ca74a0dace179a8422187671aee97dd3892b53e168627145271cad5b5ac81307"
+            base_url = "https://github.com/glennrp/libpng/archive"
+            tools.get("%s/v%s.tar.gz" % (base_url, self.version), sha256=sha256)
         os.rename("libpng-" + self.version, self._source_subfolder)
-
-
 
     def _patch(self):
         tools.patch(base_path=self._source_subfolder, patch_file=os.path.join("patches", "CMakeLists-zlib.patch"))
